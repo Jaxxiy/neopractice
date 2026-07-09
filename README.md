@@ -4,9 +4,6 @@
 
 Проект представляет собой систему бронирования/резервирования товаров, состоящую из двух микросервисов, взаимодействующих через RabbitMQ. Каждый сервис имеет свою базу данных PostgreSQL.
 
-
-text
-
 ## 🛠️ Технологический стек
 
 | Компонент | Технология | Версия |
@@ -35,6 +32,7 @@ text
 ```bash
 git clone https://github.com/your-username/neopractice.git
 cd neopractice
+
 2. Сборка проекта
 bash
 # Сборка через Maven
@@ -42,9 +40,11 @@ mvn clean package
 
 # Или через Docker
 docker-compose build
+
 3. Запуск всех сервисов
 bash
 docker-compose up -d
+
 4. Проверка работы
 Сервис	URL	Описание
 Reservation Service	http://localhost:8081	Основной сервис
@@ -56,6 +56,7 @@ Jaeger UI	http://localhost:16686	Трассировка запросов
 5. Остановка
 bash
 docker-compose down
+
 🔧 Конфигурация
 Основные переменные окружения
 Переменная	Значение по умолчанию	Описание
@@ -72,116 +73,7 @@ RabbitMQ	5672	5672
 RabbitMQ UI	15672	15672
 pgAdmin	5050	80
 Jaeger UI	16686	16686
-📡 API Документация
-Reservation Service
-Создание заявки
-http
-POST /api/reservations
-Content-Type: application/json
 
-{
-    "idProduct": "PROD-001",
-    "count": 5,
-    "idUser": "USER-001"
-}
-Ответ:
-
-json
-{
-    "status": "success",
-    "reservationId": "123e4567-e89b-12d3-a456-426614174000",
-    "message": "Reservation created successfully"
-}
-Получение всех заявок
-http
-GET /api/reservations
-Получение заявки по ID
-http
-GET /api/reservations/{id}
-Product Service
-Получение всех товаров
-http
-GET /api/products
-Создание товара
-http
-POST /api/products
-Content-Type: application/json
-
-{
-    "idProduct": "123e4567-e89b-12d3-a456-426614174000",
-    "name": "Ноутбук",
-    "count": 100
-}
-🔍 Наблюдаемость (Observability)
-Jaeger UI
-Откройте http://localhost:16686 для просмотра распределенных трейсов.
-
-Пример трейса:
-
-text
-POST /api/reservations (250ms)
-├── Reservation Service
-│   ├── createReservation (150ms)
-│   ├── saveToDatabase (50ms)
-│   └── sendToRabbitMQ (10ms)
-└── Product Service
-    ├── handleReservationRequest (90ms)
-    ├── findProduct (20ms)
-    ├── updateProductCount (15ms)
-    └── sendResponse (5ms)
-Логи
-bash
-# Логи Reservation Service
-docker logs reservation-service --tail 50
-
-# Логи Product Service
-docker logs product-service --tail 50
-
-# Логи RabbitMQ
-docker logs rabbitmq --tail 50
-🗃️ Миграции БД (Liquibase)
-Reservation Service
-xml
-<!-- Создание таблицы orders -->
-<changeSet id="1" author="developer">
-    <createTable tableName="orders">
-        <column name="id_order" type="UUID">
-            <constraints primaryKey="true" nullable="false"/>
-        </column>
-        <column name="id_product" type="VARCHAR(255)">
-            <constraints nullable="false"/>
-        </column>
-        <column name="count" type="INTEGER">
-            <constraints nullable="false"/>
-        </column>
-        <column name="id_user" type="VARCHAR(255)">
-            <constraints nullable="false"/>
-        </column>
-        <column name="date_create" type="TIMESTAMP">
-            <constraints nullable="false"/>
-        </column>
-        <column name="status" type="VARCHAR(50)"/>
-    </createTable>
-</changeSet>
-Product Service
-xml
-<!-- Создание таблицы products -->
-<changeSet id="1" author="developer">
-    <createTable tableName="products">
-        <column name="id_product" type="UUID">
-            <constraints primaryKey="true" nullable="false"/>
-        </column>
-        <column name="name" type="VARCHAR(255)">
-            <constraints nullable="false"/>
-        </column>
-        <column name="count" type="INTEGER">
-            <constraints nullable="false"/>
-        </column>
-        <column name="date_time_last_change" type="TIMESTAMP">
-            <constraints nullable="false"/>
-        </column>
-    </createTable>
-</changeSet>
 🧪 Тестирование
 Локальный запуск
 bash
