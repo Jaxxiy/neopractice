@@ -140,4 +140,3 @@ Email: jaxx004@yandex.ru
 📝 License
 Этот проект распространяется под лицензией MIT.
 
-text
