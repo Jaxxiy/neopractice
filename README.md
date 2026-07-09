@@ -23,36 +23,6 @@ text
 | Маппинг | MapStruct | 1.5.5 |
 | Сборка | Maven | - |
 
-## 📦 Структура проекта
-neopractice/
-├── docker-compose.yml
-├── README.md
-├── pom.xml (parent)
-├── common/ # Общие компоненты
-│ ├── pom.xml
-│ └── src/main/java/...
-├── reservation-service/ # Микросервис 1
-│ ├── Dockerfile
-│ ├── pom.xml
-│ └── src/main/
-│ ├── java/...
-│ └── resources/
-│ ├── application.yml
-│ ├── openapi/
-│ └── db/changelog/
-├── product-service/ # Микросервис 2
-│ ├── Dockerfile
-│ ├── pom.xml
-│ └── src/main/
-│ ├── java/...
-│ └── resources/
-│ ├── application.yml
-│ └── db/changelog/
-└── docs/
-└── openapi/
-
-text
-
 ## 🚀 Запуск проекта
 
 ### Требования
