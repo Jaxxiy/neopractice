@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: Reservation Service API
+  description: API для управления резервированием товаров
+  version: 1.0.0
+
+paths:
+  /api/reservations:
+    post:
+      summary: Создать заявку на резервирование
+      operationId: createReservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequestDTO'
+      responses:
+        '200':
+          description: Успешное создание
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponseDTO'
+
+    get:
+      summary: Получить все заявки
+      operationId: getAllReservations
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationDetailsDTO'
+
+  /api/reservations/{id}:
+    get:
+      summary: Получить заявку по ID
+      operationId: getReservationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDetailsDTO'
+
+
+components:
+  schemas:
+    ReservationRequestDTO:
+      type: object
+      required:
+        - idProduct
+        - count
+        - idUser
+      properties:
+        idProduct:
+          type: string
+          description: ID товара
+          example: "PROD-001"
+        count:
+          type: integer
+          minimum: 1
+          description: Количество
+          example: 5
+        idUser:
+          type: string
+          description: ID пользователя
+          example: "USER-001"
+
+    ReservationResponseDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, fail]
+          description: Статус операции
+          example: "success"
+        reservationId:
+          type: string
+          format: uuid
+          description: ID заявки
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        message:
+          type: string
+          description: Сообщение
+          example: "Reservation created successfully"
+
+    ReservationDetailsDTO:
+      type: object
+      properties:
+        idReservation:
+          type: string
+          format: uuid
+          description: ID заявки
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        idProduct:
+          type: string
+          description: ID товара
+          example: "PROD-001"
+        count:
+          type: integer
+          description: Количество
+          example: 5
+        idUser:
+          type: string
+          description: ID пользователя
+          example: "USER-001"
+        dateCreate:
+          type: string
+          format: date-time
+          description: Дата создания
+          example: "2026-07-09T10:30:00Z"
+        status:
+          type: string
+          enum: [PENDING, SUCCESS, FAIL, CANCELLED]
+          description: Статус заявки
+          example: "PENDING"

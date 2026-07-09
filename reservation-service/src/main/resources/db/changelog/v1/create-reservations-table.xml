@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="1" author="developer">
+        <createTable tableName="reservations">
+            <column name="id_reservation" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_product" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="count" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id_user" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_create" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Индексы -->
+        <createIndex tableName="reservations" indexName="idx_orders_id_product">
+            <column name="id_product"/>
+        </createIndex>
+
+        <createIndex tableName="reservations" indexName="idx_orders_id_user">
+            <column name="id_user"/>
+        </createIndex>
+
+        <createIndex tableName="reservations" indexName="idx_orders_date_create">
+            <column name="date_create"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: reservation-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/reservation_db
+    username: reservation_user
+    password: reservation_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    drop-first: false
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+    connection-timeout: 30000
+    requested-heartbeat: 30
+    listener:
+      simple:
+        default-requeue-rejected: false
+        acknowledge-mode: auto
+        concurrency: 1
+        max-concurrency: 5
+
+server:
+  port: 8081
+
+logging:
+  level:
+    com.example: DEBUG
+    org.hibernate: DEBUG
+    org.springframework.amqp: DEBUG
+    org.springframework.rabbit: DEBUG
+
+rabbitmq:
+  queue:
+    order: order.queue
+    response: order.response.queue
+  exchange: order.exchange
+  routing:
+    order: order.created
+    response: order.response
+
+product-service:
+  url: http://localhost:8082
