@@ -8,6 +8,7 @@ public class ProductReservationMessage implements Serializable {
     private String productId;
     private Integer count;
     private String orderId;
+    private String idUser;
 
     public ProductReservationMessage() {
     }
@@ -18,6 +19,20 @@ public class ProductReservationMessage implements Serializable {
         this.orderId = orderId;
     }
 
+    public ProductReservationMessage(String productId, Integer count, String orderId, String idUser) {
+        this.productId = productId;
+        this.count = count;
+        this.orderId = orderId;
+        this.idUser = idUser;
+    }
+
+    public String getIdUser() {
+        return idUser;
+    }
+
+    public void setIdUser(String idUser) {
+        this.idUser = idUser;
+    }
 
     public String getProductId() {
         return productId;

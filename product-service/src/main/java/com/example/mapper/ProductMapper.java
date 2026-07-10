@@ -14,8 +14,10 @@ public interface ProductMapper {
 
     ProductMapper INSTANCE = Mappers.getMapper(ProductMapper.class);
 
+    @Mapping(target = "dateTimeLastChange", ignore = true)
     ProductDTO toDto(Product product);
 
+    @Mapping(target = "dateTimeLastChange", ignore = true)
     Product toEntity(ProductDTO productDto);
 
     List<ProductDTO> toDtoList(List<Product> products);
