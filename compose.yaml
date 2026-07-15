@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # ===== БАЗЫ ДАННЫХ =====
   postgres-reservation:
     image: postgres:17
     container_name: postgres-reservation
@@ -57,6 +58,7 @@ services:
       - neopractice-network
     restart: unless-stopped
 
+  # ===== RABBITMQ =====
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -78,6 +80,7 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ===== MIKROSERVISY =====
   product-service:
     build:
       context: ./product-service
@@ -135,10 +138,109 @@ services:
       - neopractice-network
     restart: unless-stopped
 
+  # ===== GRAVITEE API GATEWAY (ИСПРАВЛЕННАЯ ВЕРСИЯ) =====
+
+  # База данных для Gravitee
+  gravitee-postgres:
+    image: postgres:17
+    container_name: gravitee-postgres
+    environment:
+      POSTGRES_DB: gravitee
+      POSTGRES_USER: gravitee
+      POSTGRES_PASSWORD: gravitee
+    ports:
+      - "5434:5432"
+    volumes:
+      - gravitee-postgres-data:/var/lib/postgresql/data
+    networks:
+      - neopractice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gravitee -d gravitee"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Gravitee Management API (исправленное имя образа)
+  gravitee-api:
+    image: graviteeio/apim-management-api:latest
+    container_name: gravitee-api
+    environment:
+      MGMT_API_PORT: 8093
+
+      GRAVITEE_MANAGEMENT_TYPE: jdbc
+
+      GRAVITEE_MANAGEMENT_JDBC_URL: jdbc:postgresql://gravitee-postgres:5432/gravitee
+      GRAVITEE_MANAGEMENT_JDBC_USERNAME: gravitee
+      GRAVITEE_MANAGEMENT_JDBC_PASSWORD: gravitee
+
+      GRAVITEE_ANALYTICS_TYPE: none  # <-- это ключевая переменная!
+
+      # Отключаем уведомления (чтобы убрать WARN)
+      GRAVITEE_NOTIFICATION_ENABLED: "false"
+
+      # JWT для аутентификации
+      GRAVITEE_SECURITY_DEFAULT_PROVIDER: jwt
+      GRAVITEE_SECURITY_JWT_SECRET: myJWT4Gr4v1teeSecretKey
+      GRAVITEE_SECURITY_JWT_ISSUER: gravitee.io
+    ports:
+      - "8093:8083"
+      - "8083:8083"
+    depends_on:
+      gravitee-postgres:
+        condition: service_healthy
+    networks:
+      - neopractice-network
+    restart: unless-stopped
+
+  # Gravitee Gateway (исправленное имя образа)
+  gravitee-gateway:
+    image: graviteeio/apim-gateway:latest
+    container_name: gravitee-gateway
+    environment:
+      GRAVITEE_REPOSITORIES_MANAGEMENT_TYPE: jdbc
+      GRAVITEE_REPOSITORIES_MANAGEMENT_JDBC_URL: jdbc:postgresql://gravitee-postgres:5432/gravitee
+      GRAVITEE_REPOSITORIES_MANAGEMENT_JDBC_USERNAME: gravitee
+      GRAVITEE_REPOSITORIES_MANAGEMENT_JDBC_PASSWORD: gravitee
+
+      # Синхронизация с Management API
+      GRAVITEE_MANAGEMENT_SYNC_ENABLED: "true"
+      GRAVITEE_MANAGEMENT_SYNC_ENDPOINT: http://gravitee-api:8093/management/organizations/DEFAULT/environments/DEFAULT/apis
+      GRAVITEE_MANAGEMENT_SYNC_SECRET: mySyncSecretKey
+
+      # Отключаем аналитику
+      GRAVITEE_REPORTERS_ELASTICSEARCH_ENABLED: "false"
+    ports:
+      - "8092:8082"
+    depends_on:
+      gravitee-postgres:
+        condition: service_healthy
+      gravitee-api:
+        condition: service_started
+    networks:
+      - neopractice-network
+    restart: unless-stopped
+
+  # Gravitee Management Console (исправленное имя образа)
+  gravitee-ui:
+    image: graviteeio/apim-management-ui:latest
+    container_name: gravitee-ui
+    environment:
+      MGMT_API_URL: http://localhost:8083/management
+      PORTAL_API_URL: http://localhost:8083/portal
+    ports:
+      - "8090:8080"
+    depends_on:
+      - gravitee-api
+    networks:
+      - neopractice-network
+    restart: unless-stopped
+
 volumes:
   postgres-reservation-data:
   postgres-product-data:
   rabbitmq-data:
+  gravitee-postgres-data:
 
 networks:
   neopractice-network:
