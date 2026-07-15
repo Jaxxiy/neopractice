@@ -20,6 +20,10 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     drop-first: false
 
+  opentelemetry:
+    jaeger:
+      endpoint: http://jaeger:14250
+
   rabbitmq:
     host: localhost
     port: 5672
@@ -44,6 +48,8 @@ logging:
     org.hibernate: DEBUG
     org.springframework.amqp: DEBUG
     org.springframework.rabbit: DEBUG
+    io.opentelemetry: DEBUG
+
 
 rabbitmq:
   queue:

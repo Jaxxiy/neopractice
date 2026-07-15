@@ -4,6 +4,9 @@ import com.example.dto.ReservationDetailsDTO;
 import com.example.dto.ReservationRequestDTO;
 import com.example.dto.ReservationResponseDTO;
 import com.example.service.ReservationService;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,9 +26,11 @@ public class ReservationController {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationController.class);
     private final ReservationService reservationService;
+    private final Tracer tracer;
 
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, Tracer tracer) {
         this.reservationService = reservationService;
+        this.tracer = tracer;
     }
 
     @PostMapping
@@ -35,15 +40,52 @@ public class ReservationController {
         log.info("Received reservation request for product: {}, count: {}",
                 request.getIdProduct(), request.getCount());
 
-        ReservationResponseDTO response = reservationService.createReservation(request);
-        return ResponseEntity.ok(response);
+        Span span = tracer.spanBuilder("POST /api/reservations")
+                .setAttribute("product.id", request.getIdProduct())
+                .setAttribute("product.count", request.getCount())
+                .setAttribute("user.id", request.getIdUser())
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            ReservationResponseDTO response = reservationService.createReservation(request);
+
+            span.setAttribute("reservation.id", response.getReservationId());
+            span.setAttribute("reservation.status", response.getStatus());
+            span.setAttribute("operation.success", true);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @GetMapping
     @Operation(summary = "Get all reservations")
     public ResponseEntity<List<ReservationDetailsDTO>> getAllReservations() {
         log.info("Received request to get all reservations");
-        return ResponseEntity.ok(reservationService.getAllReservations());
+
+        Span span = tracer.spanBuilder("GET /api/reservations")
+                .setAttribute("operation.type", "get_all")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            List<ReservationDetailsDTO> response = reservationService.getAllReservations();
+            span.setAttribute("result.count", response.size());
+            span.setAttribute("operation.success", true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @GetMapping("/{id}")
@@ -51,7 +93,24 @@ public class ReservationController {
     public ResponseEntity<ReservationDetailsDTO> getReservationById(
             @Parameter(description = "Reservation UUID") @PathVariable UUID id) {
         log.info("Received request to get reservation by id: {}", id);
-        return ResponseEntity.ok(reservationService.getReservationById(id));
+
+        Span span = tracer.spanBuilder("GET /api/reservations/{id}")
+                .setAttribute("reservation.id", id.toString())
+                .setAttribute("operation.type", "get_by_id")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            ReservationDetailsDTO response = reservationService.getReservationById(id);
+            span.setAttribute("operation.success", true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @GetMapping("/user/{userId}")
@@ -59,7 +118,25 @@ public class ReservationController {
     public ResponseEntity<List<ReservationDetailsDTO>> getReservationsByUser(
             @Parameter(description = "User ID") @PathVariable String userId) {
         log.info("Received request to get reservations for user: {}", userId);
-        return ResponseEntity.ok(reservationService.getReservationsByUser(userId));
+
+        Span span = tracer.spanBuilder("GET /api/reservations/user/{userId}")
+                .setAttribute("user.id", userId)
+                .setAttribute("operation.type", "get_by_user")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            List<ReservationDetailsDTO> response = reservationService.getReservationsByUser(userId);
+            span.setAttribute("result.count", response.size());
+            span.setAttribute("operation.success", true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @GetMapping("/product/{productId}")
@@ -67,7 +144,25 @@ public class ReservationController {
     public ResponseEntity<List<ReservationDetailsDTO>> getReservationsByProduct(
             @Parameter(description = "Product ID") @PathVariable String productId) {
         log.info("Received request to get reservations for product: {}", productId);
-        return ResponseEntity.ok(reservationService.getReservationsByProduct(productId));
+
+        Span span = tracer.spanBuilder("GET /api/reservations/product/{productId}")
+                .setAttribute("product.id", productId)
+                .setAttribute("operation.type", "get_by_product")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            List<ReservationDetailsDTO> response = reservationService.getReservationsByProduct(productId);
+            span.setAttribute("result.count", response.size());
+            span.setAttribute("operation.success", true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -75,7 +170,23 @@ public class ReservationController {
     public ResponseEntity<Void> cancelReservation(
             @Parameter(description = "Reservation UUID") @PathVariable UUID id) {
         log.info("Received request to cancel reservation: {}", id);
-        reservationService.cancelReservation(id);
-        return ResponseEntity.noContent().build();
+
+        Span span = tracer.spanBuilder("DELETE /api/reservations/{id}")
+                .setAttribute("reservation.id", id.toString())
+                .setAttribute("operation.type", "cancel")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            reservationService.cancelReservation(id);
+            span.setAttribute("operation.success", true);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            span.setAttribute("operation.success", false);
+            span.setAttribute("error", true);
+            span.recordException(e);
+            throw e;
+        } finally {
+            span.end();
+        }
     }
 }

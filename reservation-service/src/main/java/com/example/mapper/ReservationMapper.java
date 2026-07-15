@@ -18,6 +18,7 @@ public interface ReservationMapper {
     ReservationDetailsDTO toDetailsDto(Reservation reservation);
 
     @Mapping(target = "reservationId", source = "idReservation")
+    @Mapping(target = "message", ignore = true)
     ReservationResponseDTO toResponseDto(Reservation reservation);
 
     @Mapping(target = "idReservation", ignore = true)

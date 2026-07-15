@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class ProductDTO {
@@ -15,6 +16,16 @@ public class ProductDTO {
     @NotNull(message = "Count is required")
     @Min(value = 0, message = "Count must be at least 0")
     private Integer count;
+
+    private LocalDateTime dateTimeLastChange;
+
+    public LocalDateTime getDateTimeLastChange() {
+        return dateTimeLastChange;
+    }
+
+    public void setDateTimeLastChange(LocalDateTime dateTimeLastChange) {
+        this.dateTimeLastChange = dateTimeLastChange;
+    }
 
     public ProductDTO() {
     }
